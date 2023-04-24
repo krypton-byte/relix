@@ -23,7 +23,7 @@ jobs:
       run: |
         pip install codecov
         pip install pytest-cov
-        coverage run -m pytest --cov relix --cov-report xml
+        coverage run -m pytest --cov -m relix --cov-report xml
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
       with:
