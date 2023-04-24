@@ -13,7 +13,6 @@ import sys
 from typing import Optional
 from .load import command_executor, command_loader, nested_mkdir
 from .env import logger
-term = termios.tcgetattr(sys.stdin.fileno())
 
 
 class Arrow(Enum):
@@ -35,9 +34,10 @@ class CMD:
         self,
         history: History,
         env: VarEnv,
-        hostname: str = 'relix',
+        hostname: str,
 ) -> None:
         self.text: TextCursor = TextCursor()
+        self.term = termios.tcgetattr(sys.stdin.fileno())
         self.env = env
         self.env['cwd'] = os.getcwd()
         self.hostname = f'{os.getlogin()}@{hostname}: '
@@ -108,8 +108,8 @@ class CMD:
         self.history.add_history(self.text.text)
         if self.text.text in ['exit', 'q']:
             self.history.dump_history()
-            term[3] &= termios.ECHO | termios.ECHOCTL | termios.BRKINT
-            termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, term)
+            self.term[3] &= termios.ECHO | termios.ECHOCTL | termios.BRKINT
+            termios.tcsetattr(sys.stdin.fileno(), termios.TCSADRAIN, self.term)
             sys.exit(0)
         await self.execute(self.text.text)
         self.text.clear()
@@ -197,14 +197,15 @@ async def init():
     nested_mkdir(full_path)
     history = History(full_path/'.history')
     history.load_history()
-    cmd = CMD(
-        history,
-        VarEnv.initialize()
-    )
     libraries = full_path / 'libraries/command'
     nested_mkdir(libraries)
     command_loader(libraries)
     if not parse.test:
+        cmd = CMD(
+            history,
+            VarEnv.initialize(),
+            parse.hostname
+        )
         await cmd.start()
 
 
