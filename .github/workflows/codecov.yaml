@@ -10,12 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
-        env_vars: OS,PYTHON
-        files: ./coverage.xml
     - uses: actions/checkout@master
     - name: Set up Python 3.11
       uses: actions/setup-python@v1
@@ -25,3 +19,15 @@ jobs:
       run: |
           python3 -m pip install -r requirements.txt
           python3 -m relix -tv
+    - name: Generate Report
+      run: |
+        pip install codecov
+        pip install pytest-cov
+        pytest --cov=./ --cov-report=xml
+        codecov
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        env_vars: OS,PYTHON
+        files: ./coverage.xml
