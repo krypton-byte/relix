@@ -1,3 +1,4 @@
+import sys
 import pathlib
 import shlex
 from typing import Callable, List, Type
@@ -12,11 +13,14 @@ def import_nested(obj: object, dir: List[str]):
 COMMAND: List[Type[BaseCommand]] = []
 
 
-def command_loader(name: str):
-    for directory in (pathlib.Path(__file__).parent / 'command').iterdir():
+def command_loader(path: pathlib.Path):
+    logger.debug(f'Load Library From {path.parent.name}/{path.name}')
+    before = COMMAND.__len__()
+    sys.path.insert(0, path.parent.parent.__str__())
+    for directory in path.iterdir():
         if directory.__str__()[-3:] == '.py':
             file = directory.__str__().split('/')[-1][:-3]
-            mod = getattr(__import__(f'{name}.command.{file}').command, file)
+            mod = getattr(getattr(__import__(f'{path.parent.name}.{path.name}.{file}'), path.name), file)
             for obj in dir(mod):
                 if hasattr(
                     getattr(mod, obj),
@@ -25,13 +29,13 @@ def command_loader(name: str):
                     fmod: Type[BaseCommand] = getattr(mod, obj)
                     if fmod not in COMMAND:
                         COMMAND.append(fmod)
+    logger.debug(
+        (COMMAND.__len__() - before).__str__() +
+        ' COMMAND LOADED'
+    )
 
 
-command_loader('relix')
-logger.debug(
-    COMMAND.__len__().__str__() +
-    ' COMMAND LOADED'
-)
+command_loader(pathlib.Path(__file__).parent / 'command')
 
 
 async def command_executor(

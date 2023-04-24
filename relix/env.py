@@ -12,7 +12,7 @@ import logging
 
 logger = logging.getLogger('relix')
 logging.basicConfig(format='%(asctime)s  %(message)s', level=logging.INFO)
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
 
 class TextCursor(object):
@@ -132,10 +132,11 @@ class History(list):
                 self.extend(pickle.load(file))
                 self.append('')
                 self.position = self.__len__() - 1
+                logger.debug(f'{self.__len__()} History Loaded')
 
     def dump_history(self):
         if self.file:
-            for i in range(self.count('')):
+            for _ in range(self.count('')):
                 self.remove('')
             with open(self.file, 'wb') as file:
                 pickle.dump(self, file)

@@ -1,6 +1,5 @@
 from pathlib import Path
 import shlex
-import sys
 from .cmd import BaseCommand
 
 

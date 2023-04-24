@@ -1,3 +1,5 @@
+import argparse
+import logging
 from pathlib import Path
 import appdirs
 import contextlib
@@ -9,7 +11,8 @@ import signal
 import termios
 import sys
 from typing import Optional
-from .load import command_executor
+from .load import command_executor, command_loader
+from .env import logger
 term = termios.tcgetattr(sys.stdin.fileno())
 
 
@@ -161,6 +164,35 @@ async def interactive():
 
 
 async def init():
+    args = argparse.ArgumentParser('relix')
+    args.add_argument(
+        '-l', help='libraries',
+        type=str
+    )
+    args.add_argument(
+        '--hostname',
+        help='hostname',
+        type=str,
+        default='relix'
+    )
+    args.add_argument(
+        '-v',
+        help='verbose',
+        action='store_const',
+        const=logging.DEBUG,
+        default=logging.INFO,
+        dest='level'
+    )
+    args.add_argument(
+        '-t',
+        help='Test All Files',
+        action='store_true',
+        dest='test'
+    )
+    parse = args.parse_args()
+    logger.setLevel(parse.level)
+    if parse.l:
+        command_loader(Path(parse.l).absolute())
     full_path = Path(appdirs.user_config_dir('relix'))
     if not full_path.exists():
         os.mkdir(full_path)
@@ -170,7 +202,12 @@ async def init():
         history,
         VarEnv.initialize()
     )
-    await cmd.start()
+    libraries = full_path / 'libraries/command'
+    if not libraries.exists():
+        os.mkdir(libraries)
+    command_loader(libraries)
+    if not parse.test:
+        await cmd.start()
 
 
 loop = asyncio.new_event_loop()
