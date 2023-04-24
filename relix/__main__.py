@@ -11,7 +11,7 @@ import signal
 import termios
 import sys
 from typing import Optional
-from .load import command_executor, command_loader
+from .load import command_executor, command_loader, nested_mkdir
 from .env import logger
 term = termios.tcgetattr(sys.stdin.fileno())
 
@@ -194,8 +194,7 @@ async def init():
     if parse.l:
         command_loader(Path(parse.l).absolute())
     full_path = Path(appdirs.user_config_dir('relix'))
-    if not full_path.exists():
-        os.mkdir(full_path)
+    nested_mkdir(full_path)
     history = History(full_path/'.history')
     history.load_history()
     cmd = CMD(
@@ -203,8 +202,7 @@ async def init():
         VarEnv.initialize()
     )
     libraries = full_path / 'libraries/command'
-    if not libraries.exists():
-        os.mkdir(libraries)
+    nested_mkdir(libraries)
     command_loader(libraries)
     if not parse.test:
         await cmd.start()

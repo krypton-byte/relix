@@ -1,13 +1,23 @@
 import sys
 import pathlib
 import shlex
+import os
 from typing import Callable, List, Type
 from .command.cmd import BaseCommand, display_func
 from .env import logger
 
 
-def import_nested(obj: object, dir: List[str]):
-    return import_nested(getattr(obj, dir[0]), dir[1:])
+def nested_mkdir(path: pathlib.Path):
+    parts = path.parts
+    for i in range(1, parts.__len__() + 1):
+        xpath = pathlib.Path().joinpath('/'.join(parts[:i]))
+        if xpath.exists():
+            if xpath.is_file():
+                os.remove(xpath)
+                os.mkdir(xpath)
+        else:
+            os.mkdir(xpath)
+            logger.debug(f'create {path.__str__()} dir')
 
 
 COMMAND: List[Type[BaseCommand]] = []

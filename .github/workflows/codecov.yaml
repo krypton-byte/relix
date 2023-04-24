@@ -11,3 +11,12 @@ jobs:
     steps:
     - name: Upload coverage reports to Codecov
       uses: codecov/codecov-action@v3
+    - uses: actions/checkout@master
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v1
+      with:
+        python-version: '3.9'
+    - name: Test
+      run: |
+          python3 -m pip install -r requirements.txt
+          python3 -m relix -tv
