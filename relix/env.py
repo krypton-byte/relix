@@ -1,13 +1,14 @@
 from __future__ import annotations
+import os
 from typing import Optional
 import relix
 from dataclasses import dataclass
 from pathlib import Path
 import secrets
-from text_password_protect import TextPasswordProtect
 import pickle
 from colorama import ansi
 import logging
+from pyaes import AESModeOfOperationCTR
 
 
 logger = logging.getLogger('relix')
@@ -148,23 +149,19 @@ class VarEnv(dict):
     VERSION: str
     FILENAME = '.env.pickle'
 
-    def __post_init__(self):
-        self.ncdc = TextPasswordProtect(self.RELIX_SALT)
-
-    def set(self, key: str, val: str, password: Optional[str] = None):
+    def set(self, key: str, val: str):
         self.update({
-            key: self.ncdc.encrypt(
-                val,
-                password
-            ) if password else val
+            key: AESModeOfOperationCTR(self.RELIX_SALT).encrypt(
+                val
+            )
         })
 
-    def get(self, key: str, password: Optional[str] = None) -> str | None:
+    def get(self, key: str) -> str | None:
         get = super().get(key)
         if get:
-            if password:
-                return self.ncdc.decrypt(get, password)
-            return get
+            return AESModeOfOperationCTR(self.RELIX_SALT).decrypt(
+                get
+            ).decode()
 
     @classmethod
     def initialize(cls):
@@ -193,7 +190,7 @@ class Settings:
     @classmethod
     def initialize(cls):
         return cls(
-            RELIX_SALT=secrets.token_bytes(16),
+            RELIX_SALT=os.urandom(16),
             VERSION=getattr(
                 relix,
                 '__version__'

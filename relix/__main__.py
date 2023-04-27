@@ -35,11 +35,11 @@ class CMD:
         history: History,
         env: VarEnv,
         hostname: str,
-) -> None:
+    ) -> None:
         self.text: TextCursor = TextCursor()
         self.term = termios.tcgetattr(sys.stdin.fileno())
         self.env = env
-        self.env['cwd'] = os.getcwd()
+        self.env.set('cwd', os.getcwd())
         self.hostname = f'{os.getlogin()}@{hostname}: '
         self.history = history
         self.width_terminal = os.get_terminal_size().columns
