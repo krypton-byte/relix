@@ -3,7 +3,6 @@ appdirs==1.4.4
 certifi==2022.12.7
 cffi==1.15.1
 colorama==0.4.6
-cryptography==40.0.2
 h11==0.14.0
 httpcore==0.17.0
 httpx==0.24.0
