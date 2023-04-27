@@ -73,14 +73,13 @@ class CMD:
                 text +
                 ' '*(self.width_terminal - text.__len__())
             )
-            sys.stdout.write('\r')
         else:
             sys.stdout.write(
                 '\r' +
                 (text or self.text.text) +
-                ' '*(self.width_terminal - self.text.text.__len__())
+                ' '*(self.width_terminal - (text or self.text.text).__len__())
             )
-            sys.stdout.write('\r')
+            sys.stdout.write('\n')
         sys.stdout.flush()
 
     async def on_backspace(self):
